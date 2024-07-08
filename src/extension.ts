@@ -1101,6 +1101,14 @@ export async function activate(context: vscode.ExtensionContext) {
         "espIdf.projectConf",
         100
       );
+      if (ConfserverProcess.exists()) {
+        const closingSDKConfigMsg = vscode.l10n.t(
+          `Closing existing SDK Configuration editor process...`
+        );
+        OutputChannel.init().appendLine(closingSDKConfigMsg);
+        Logger.info(closingSDKConfigMsg);
+        ConfserverProcess.dispose();
+      }      
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });

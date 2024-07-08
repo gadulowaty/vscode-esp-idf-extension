@@ -317,6 +317,24 @@ export class ConfserverProcess {
     if (enableCCache) {
       confServerArgs.push("--ccache");
     }
+    const buildPath = idfConf.readParameter(
+      "idf.buildPath",
+      workspaceFolder
+    ) as string;
+    if( buildPath ) {
+      confServerArgs.push("-B", buildPath);
+    }
+    const sdkconfigFilePath = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspaceFolder
+    ) as string;
+    if( sdkconfigFilePath ) {
+      confServerArgs.push("-D", `SDKCONFIG=${sdkconfigFilePath}`);
+    }
+    const sdkconfigDefaults = (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+    if (sdkconfigDefaults && sdkconfigDefaults.length) {
+      confServerArgs.push(`-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`);
+    }    
     confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
     this.confServerProcess = spawn(pythonBinPath, confServerArgs, {
       env: modifiedEnv,
