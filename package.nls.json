@@ -124,6 +124,7 @@
   "param.exportVars": "Variables to be added to system environment variables",
   "param.flashBaudRate": "ESP-IDF Flash Baud rate",
   "param.gitPath.title": "Git executable path",
+  "param.projectConf.title": "Selected project configuration name",
   "param.launchMonitorOnDebugSession.title": "Start IDF Monitor along with ESP-IDF Debug Adapter session",
   "param.monitorBaudRate": "ESP-IDF Monitor Baud rate",
   "param.monitorCustomTimestampFormat": "Custom timestamp format in IDF Monitor",

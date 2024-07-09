@@ -152,6 +152,7 @@ import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
+import { ConfigurationTarget, workspace, ConfigurationScope } from 'vscode';
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1109,6 +1110,10 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.info(closingSDKConfigMsg);
         ConfserverProcess.dispose();
       }      
+      
+      const configuration = workspace.getConfiguration("idf", workspaceRoot);
+      await configuration.update("projectConf", option.target, ConfigurationTarget.Workspace);
+      await vscode.commands.executeCommand("cpptools.setActiveConfigName", "ESP-IDF");
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });

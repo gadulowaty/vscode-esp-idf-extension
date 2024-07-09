@@ -975,6 +975,12 @@
             "scope": "resource",
             "default": "espidf.spdx",
             "description": "%param.sbomFilePath.title%"
+          },
+          "idf.projectConf": {
+            "type": "string",
+            "description": "%param.projectConf.title%",
+            "scope": "resource",
+            "default": ""
           }
         }
       }
