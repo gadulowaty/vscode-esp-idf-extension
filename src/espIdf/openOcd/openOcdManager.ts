@@ -199,31 +199,42 @@ export class OpenOCDManager extends EventEmitter {
         openOcdArgs.push(arg);
       });
     }
-
     this.server = spawn("openocd", openOcdArgs, {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
+    var leftover: string = "";
+
     this.server.stderr.on("data", (data) => {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
-      const regex = /Error:.*/i;
-      const errStr = data.toString();
-      const matchArr = errStr.match(regex);
-      if (!matchArr) {
-        this.emit("data", this.chan);
-      } else {
-        const errorMsg = `OpenOCD server failed to start because of ${matchArr.join(
-          " "
-        )}`;
-        const err = new Error(errorMsg);
-        Logger.error(errorMsg + `\n❌ ${errStr}`, err);
-        OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
-        this.emit("error", err, this.chan);
+
+      const regErr = /^\s*Error\s*:(.*)/i;
+      const regNfo = /^\s*Info\s*:(.*)/i;
+      let errStr: string = leftover + data.toString();
+
+      let iNL: number;
+      while( ( iNL = errStr.indexOf("\n") ) !== -1 ) {
+        let lineText: string = errStr.substring(0, iNL);
+        errStr = errStr.substring(iNL+1);
+
+        const errMatch = lineText.match(regErr);
+        if( errMatch) {
+          const errorMsg = `OpenOCD server failed to start because of ${errMatch.join(" ")}`;
+          const err = new Error(errorMsg);
+          this.emit("error", err, this.chan);
+
+          Logger.error(errorMsg + `\n🔶 ${lineText}`, err);
+          OutputChannel.appendLine(`🔶 ${lineText}`, "OpenOCD");
+        } else {
+          this.emit("data", this.chan);
+          const lineMark = lineText.match(regNfo) ? "🔹" : "💬";
+          OutputChannel.appendLine(`${lineMark} ${lineText}`, "OpenOCD");
+          Logger.info(`${lineMark} ${lineText}`);
+        }
       }
-      OutputChannel.appendLine(errStr, "OpenOCD");
-      Logger.info(errStr);
+      leftover = errStr;
     });
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
@@ -235,6 +246,10 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.server.on("close", (code: number, signal: string) => {
+      if(leftover) {
+        OutputChannel.appendLine(leftover,"OpenOCD");
+      }
+
       if (this.encounteredErrors) {
         OutputChannel.appendLine(
           `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
@@ -254,7 +269,8 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-    this.updateStatusText("❇️ ESP-IDF: OpenOCD Server (Running)");
+    // ❇️❌⏸️
+    this.updateStatusText("▶️ ESP-IDF: OpenOCD Server (Running)");
     OutputChannel.show();
   }
 
@@ -262,8 +278,8 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
-      this.updateStatusText("❌ ESP-IDF: OpenOCD Server (Stopped)");
-      const endMsg = "[Stopped] : OpenOCD Server";
+      this.updateStatusText("⏹️ ESP-IDF: OpenOCD Server (Stopped)");
+      const endMsg = "OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
     }
@@ -278,7 +294,7 @@ export class OpenOCDManager extends EventEmitter {
       vscode.StatusBarAlignment.Right,
       1000
     );
-    this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
+    this.statusBar.text = "⏹️ ESP-IDF: OpenOCD Server (Stopped)";
     this.statusBar.command = "espIdf.openOCDCommand";
     this.statusBar.show();
   }
