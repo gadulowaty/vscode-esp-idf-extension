@@ -76,6 +76,14 @@ export class IdfReconfigureTask {
     }
     reconfigureArgs.push("-B", this.buildDirPath);
 
+    const sdkconfigFilePath = readParameter(
+      "idf.sdkconfigFilePath",
+      this.curWorkspace
+    ) as string;
+    if( sdkconfigFilePath ) {
+      reconfigureArgs.push(`-DSDKCONFIG=${sdkconfigFilePath}`);
+    }
+
     const sdkconfigDefaults =
       (readParameter("idf.sdkconfigDefaults") as string[]) || [];
     if (
