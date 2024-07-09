@@ -89,9 +89,9 @@ export async function buildCommand(
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
-      Logger.infoNotify("Build Successfully");
+      Logger.infoNotify("Build Successfully 🏗");
       const flashCmd = await buildFinishFlashCmd(workspace);
-      OutputChannel.appendLineAndShow(flashCmd, "Build");
+      OutputChannel.appendLine(flashCmd, "Build");
       TaskManager.disposeListeners();
     }
   } catch (error) {
